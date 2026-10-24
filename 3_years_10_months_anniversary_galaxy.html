@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 Años y 10 Meses Juntos - Nuestra Galaxia de Amor</title>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #03000a;
+            color: #ffffff;
+            user-select: none;
+        }
+
+        .font-cursive {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        /* Canvas fixed background */
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(18, 10, 35, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(236, 72, 153, 0.2);
+        }
+
+        .glass-button {
+            background: rgba(236, 72, 153, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(244, 114, 182, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-button:hover {
+            background: rgba(236, 72, 153, 0.45);
+            border-color: rgba(244, 114, 182, 0.8);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Custom scrollbar for modal content */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(236, 72, 153, 0.5);
+            border-radius: 10px;
+        }
+
+        /* Pulsing Glow Effect */
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.8)); }
+            50% { filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.9)); }
+        }
+
+        .animate-pulse-glow {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-black text-white antialiased">
+
+    <!-- 3D Render Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Overlay UI Layer -->
+    <div class="relative z-10 pointer-events-none min-h-screen flex flex-col justify-between p-4 md:p-6">
+
+        <!-- Top Header Banner -->
+        <header class="flex flex-col items-center text-center mt-2 md:mt-4 pointer-events-auto">
+            <div class="glass-panel px-6 py-4 rounded-3xl max-w-lg w-full border border-pink-500/30">
+                <span class="text-xs uppercase tracking-widest text-pink-300 font-semibold flex items-center justify-center gap-2">
+                    <i class="fas fa-heart text-pink-500 animate-bounce"></i> 46 Meses de Amor Incondicional <i class="fas fa-heart text-pink-500 animate-bounce"></i>
+                </span>
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-amber-200 font-cursive mt-1">
+                    3 Años y 10 Meses
+                </h1>
+                
+                <!-- Dynamic Time Counter -->
+                <div class="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-white/10 text-center">
+                    <div class="bg-white/5 rounded-xl p-1.5 border border-white/5">
+                        <span id="counter-days" class="block text-lg md:text-xl font-extrabold text-pink-400">1400+</span>
+                        <span class="text-[10px] text-gray-400 uppercase font-medium">Días</span>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-1.5 border border-white/5">
+                        <span id="counter-hours" class="block text-lg md:text-xl font-extrabold text-purple-300">33,600</span>
+                        <span class="text-[10px] text-gray-400 uppercase font-medium">Horas</span>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-1.5 border border-white/5">
+                        <span id="counter-mins" class="block text-lg md:text-xl font-extrabold text-cyan-300">2.0M</span>
+                        <span class="text-[10px] text-gray-400 uppercase font-medium">Minutos</span>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-1.5 border border-white/5">
+                        <span id="counter-secs" class="block text-lg md:text-xl font-extrabold text-amber-300">120M</span>
+                        <span class="text-[10px] text-gray-400 uppercase font-medium">Segundos</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Floating Quick Instruction Badge -->
+        <div class="hidden sm:flex self-center my-auto pointer-events-none opacity-80 hover:opacity-100 transition-opacity">
+            <div class="glass-panel px-4 py-2 rounded-full text-xs text-pink-200 flex items-center gap-2">
+                <i class="fas fa-hand-pointer text-pink-400 animate-pulse"></i> 
+                <span>Explora la galaxia: arrastra para rotar, haz zoom y toca las estrellas flotantes.</span>
+            </div>
+        </div>
+
+        <!-- Bottom Controls Bar -->
+        <footer class="w-full max-w-md mx-auto pointer-events-auto mb-2">
+            <div class="glass-panel p-3 rounded-2xl flex items-center justify-between gap-2 border border-purple-500/30">
+                <!-- Music Toggle Button -->
+                <button id="btn-audio" onclick="toggleAudio()" class="glass-button p-3 rounded-xl flex items-center justify-center text-pink-300 hover:text-white" title="Música Cósmica">
+                    <i id="audio-icon" class="fas fa-music text-lg"></i>
+                </button>
+
+                <!-- Center Heart Explosion Button -->
+                <button onclick="triggerLoveExplosion()" class="glass-button px-5 py-2.5 rounded-xl font-bold text-sm text-white flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 shadow-lg shadow-pink-500/30">
+                    <i class="fas fa-sparkles text-amber-300"></i>
+                    <span>¡Te Amo!</span>
+                </button>
+
+                <!-- Reset Camera Button -->
+                <button onclick="resetCameraView()" class="glass-button p-3 rounded-xl flex items-center justify-center text-purple-300 hover:text-white" title="Reiniciar Vista">
+                    <i class="fas fa-compress text-lg"></i>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MEMORY NOTE MODAL (Reveals when clicking a floating node) -->
+    <div id="memory-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md hidden transition-all duration-300">
+        <div class="glass-panel rounded-3xl max-w-lg w-full p-6 md:p-8 relative border border-pink-500/40 transform scale-95 transition-transform duration-300 shadow-2xl">
+            <!-- Close Button -->
+            <button onclick="closeMemoryModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+
+            <!-- Modal Header -->
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-purple-600 flex items-center justify-center text-2xl text-white shadow-lg shadow-pink-500/40">
+                    <i id="modal-icon" class="fas fa-star"></i>
+                </div>
+                <div>
+                    <span id="modal-tag" class="text-xs uppercase tracking-wider font-bold text-pink-400">Recuerdo Especial</span>
+                    <h3 id="modal-title" class="text-xl md:text-2xl font-bold text-white">Título del Recuerdo</h3>
+                </div>
+            </div>
+
+            <!-- Modal Body Text -->
+            <div class="text-gray-200 text-sm md:text-base leading-relaxed space-y-3 max-h-[60vh] overflow-y-auto pr-2 my-4" id="modal-body">
+                <p>Cargando mensaje de amor...</p>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-pink-300">
+                <span class="italic font-cursive text-lg text-amber-200">3 Años & 10 Meses Juntos</span>
+                <button onclick="closeMemoryModal()" class="glass-button px-4 py-2 rounded-xl text-white font-semibold">
+                    Seguir Explorando ✨
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- 1. ANNIVERSARY DATES & COUNTER LOGIC ---
+        // Setting start date approximately 3 years and 10 months back from current context
+        const startDate = new Date();
+        startDate.setFullYear(startDate.getFullYear() - 3);
+        startDate.setMonth(startDate.getMonth() - 10);
+
+        function updateCounter() {
+            const now = new Date();
+            const diffMs = now - startDate;
+
+            const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const hours = Math.floor(diffMs / (1000 * 60 * 60));
+            const minutes = Math.floor(diffMs / (1000 * 60));
+            const seconds = Math.floor(diffMs / 1000);
+
+            document.getElementById('counter-days').innerText = days.toLocaleString();
+            document.getElementById('counter-hours').innerText = hours.toLocaleString();
+            document.getElementById('counter-mins').innerText = (minutes / 1000000).toFixed(1) + 'M';
+            document.getElementById('counter-secs').innerText = (seconds / 1000000).toFixed(0) + 'M';
+        }
+        setInterval(updateCounter, 1000);
+        updateCounter();
+
+        // --- 2. ROMANTIC LOVE MEMORIES DATA (46 Months) ---
+        const memories = [
+            {
+                tag: "El Inicio (Mes 1)",
+                title: "Nuestra Primera Chispa ✨",
+                icon: "fa-seedling",
+                text: "Hace 3 años y 10 meses comenzó nuestra historia. Desde el primer instante supimos que lo nuestro no era una coincidencia, sino un destino escrito en las estrellas."
+            },
+            {
+                tag: "Año 1 de Amor",
+                title: "Nuestro Primer Año Juntos 💖",
+                icon: "fa-heart",
+                text: "365 días descubriendo tu sonrisa, aprendiendo el uno del otro y construyendo una base inquebrantable de amor, complicidad y abrazos interminables."
+            },
+            {
+                tag: "Año 2 de Amor",
+                title: "Creciendo y Soñando 🚀",
+                icon: "fa-rocket",
+                text: "Dos años donde superamos cualquier obstáculo juntos. Nos convertimos en el mejor equipo, celebrando cada logro y apoyándonos en cada reto."
+            },
+            {
+                tag: "Año 3 de Amor",
+                title: "Mil Recuerdos e Inolvidables Risas 🌌",
+                icon: "fa-infinity",
+                text: "Tres años enteros de amor puro. Viajes, miradas que lo dicen todo, bromas compartidas y la certeza de que mi lugar favorito en el mundo es a tu lado."
+            },
+            {
+                tag: "Mes 46 (Hoy)",
+                title: "3 Años y 10 Meses Increíbles 💍",
+                icon: "fa-gem",
+                text: "¡Hoy cumplimos 46 meses de puro amor! Gracias por ser mi refugio, mi mejor amiga/o, mi alegría diaria y mi amor eterno. Esto es solo el comienzo de nuestra Galaxia juntos."
+            },
+            {
+                tag: "Promesa de Futuro",
+                title: "Hacia el Infinito y Más Allá 🌟",
+                icon: "fa-star font-bold",
+                text: "Prometo seguir cuidando de ti, sacándote sonrisas todos los días y amándote con la misma intensidad que el primer día. ¡Feliz 3 Años y 10 Meses!"
+            }
+        ];
+
+        // --- 3. AMBIENT AUDIO SYNTHESIZER (Web Audio API - No external dependencies) ---
+        let audioCtx = null;
+        let isAudioPlaying = false;
+        let ambientOsc1, ambientOsc2, masterGain;
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            masterGain.connect(audioCtx.destination);
+
+            // Warm atmospheric ambient oscillators
+            ambientOsc1 = audioCtx.createOscillator();
+            ambientOsc2 = audioCtx.createOscillator();
+
+            ambientOsc1.type = 'sine';
+            ambientOsc2.type = 'triangle';
+
+            // Chord notes (A major / F#m soft ambient vibe)
+            ambientOsc1.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+            ambientOsc2.frequency.setValueAtTime(329.63, audioCtx.currentTime); // E4
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(600, audioCtx.currentTime);
+
+            ambientOsc1.connect(filter);
+            ambientOsc2.connect(filter);
+            filter.connect(masterGain);
+
+            ambientOsc1.start();
+            ambientOsc2.start();
+        }
+
+        function playSparkleSound() {
+            if (!audioCtx || !isAudioPlaying) return;
+            
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            const frequencies = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C E G C E pentatonic
+            const freq = frequencies[Math.floor(Math.random() * frequencies.length)];
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+            osc.connect(gain);
+            gain.connect(masterGain);
+
+            osc.start(now);
+            osc.stop(now + 1.2);
+        }
+
+        function toggleAudio() {
+            if (!audioCtx) initAudio();
+            
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isAudioPlaying = !isAudioPlaying;
+            const btnIcon = document.getElementById('audio-icon');
+
+            if (isAudioPlaying) {
+                masterGain.gain.setTargetAtTime(0.15, audioCtx.currentTime, 0.5);
+                btnIcon.className = "fas fa-volume-up text-pink-400 animate-pulse";
+            } else {
+                masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
+                btnIcon.className = "fas fa-music text-pink-300";
+            }
+        }
+
+        // --- 4. THREE.JS 3D GALAXY SIMULATION ---
+        let scene, camera, renderer, controls;
+        let galaxyParticles, heartConstellation, memoryOrbsGroup, explosionParticlesGroup;
+        const memoryMeshObjects = [];
+
+        function initThreeJS() {
+            const canvas = document.getElementById('webgl-canvas');
+            
+            // Scene Setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x03000a, 0.008);
+
+            // Camera Setup
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 25, 45);
+
+            // Renderer Setup
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+            // Orbit Controls Setup
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 100;
+            controls.minDistance = 10;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.8;
+
+            // Build Cosmic Elements
+            createSpiralGalaxy();
+            createHeartConstellation();
+            createMemoryOrbs();
+            createExplosionGroup();
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffffff, 0.8);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xec4899, 3, 50);
+            pointLight.position.set(0, 0, 0);
+            scene.add(pointLight);
+
+            // Window Resize Listener
+            window.addEventListener('resize', onWindowResize);
+
+            // Interaction Listener (Raycasting)
+            window.addEventListener('pointerdown', onPointerDown);
+        }
+
+        // --- Spiral Galaxy Generator ---
+        function createSpiralGalaxy() {
+            const particleCount = 45000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            // Romantic Galaxy Colors: Pink, Purple, Gold, Cyan
+            const colorChoices = [
+                new THREE.Color(0xec4899), // Pink
+                new THREE.Color(0x8b5cf6), // Purple
+                new THREE.Color(0xf59e0b), // Gold
+                new THREE.Color(0x06b6d4)  // Cyan
+            ];
+
+            const arms = 4;
+            const radius = 35;
+
+            for (let i = 0; i < particleCount; i++) {
+                // Radial distance with exponent for density near center
+                const r = Math.pow(Math.random(), 2) * radius;
+                const armIndex = i % arms;
+                const spin = r * 0.4;
+                const angle = (armIndex * (Math.PI * 2 / arms)) + spin + (Math.random() - 0.5) * 0.5;
+
+                // Position calculation with spiral noise
+                const x = Math.cos(angle) * r + (Math.random() - 0.5) * (r * 0.15);
+                const y = (Math.random() - 0.5) * (r * 0.2);
+                const z = Math.sin(angle) * r + (Math.random() - 0.5) * (r * 0.15);
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                // Color interpolation based on distance
+                const mixedColor = colorChoices[Math.floor(Math.random() * colorChoices.length)].clone();
+                if (r < 6) {
+                    mixedColor.lerp(new THREE.Color(0xfff176), 0.7); // Golden core
+                }
+
+                colors[i * 3] = mixedColor.r;
+                colors[i * 3 + 1] = mixedColor.g;
+                colors[i * 3 + 2] = mixedColor.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            // Custom Glowing Circle Texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            grad.addColorStop(0, 'rgba(255,255,255,1)');
+            grad.addColorStop(0.4, 'rgba(255,255,255,0.6)');
+            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 32, 32);
+
+            const texture = new THREE.CanvasTexture(canvas);
+
+            const material = new THREE.PointsMaterial({
+                size: 0.35,
+                vertexColors: true,
+                map: texture,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            galaxyParticles = new THREE.Points(geometry, material);
+            scene.add(galaxyParticles);
+        }
+
+        // --- Heart-Shaped Core Constellation ---
+        function createHeartConstellation() {
+            const count = 1200;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            for (let i = 0; i < count; i++) {
+                const t = Math.PI * 2 * Math.random();
+                // Mathematical 3D Heart Curve
+                let x = 16 * Math.pow(Math.sin(t), 3);
+                let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+                let z = (Math.random() - 0.5) * 4;
+
+                // Scale down heart
+                const scale = 0.35;
+                x *= scale;
+                y *= scale;
+                z *= scale;
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y + 1.5; // Elevate slightly in center
+                positions[i * 3 + 2] = z;
+
+                colors[i * 3] = 0.98; // Vibrant magenta-pink
+                colors[i * 3 + 1] = 0.3;
+                colors[i * 3 + 2] = 0.6;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.45,
+                vertexColors: true,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            heartConstellation = new THREE.Points(geometry, material);
+            scene.add(heartConstellation);
+        }
+
+        // --- Interactive Memory Orbs Floating in Galaxy ---
+        function createMemoryOrbs() {
+            memoryOrbsGroup = new THREE.Group();
+
+            const sphereGeo = new THREE.SphereGeometry(0.8, 32, 32);
+
+            memories.forEach((data, index) => {
+                // Calculate position along orbital radius
+                const angle = (index / memories.length) * Math.PI * 2;
+                const orbitRadius = 14 + (index % 2) * 4;
+
+                const x = Math.cos(angle) * orbitRadius;
+                const z = Math.sin(angle) * orbitRadius;
+                const y = (Math.random() - 0.5) * 3;
+
+                // Glowing material for Orb
+                const orbMat = new THREE.MeshStandardMaterial({
+                    color: 0xf472b6,
+                    emissive: 0xdb2777,
+                    emissiveIntensity: 0.8,
+                    roughness: 0.2,
+                    metalness: 0.8,
+                    wireframe: index % 2 === 0
+                });
+
+                const orbMesh = new THREE.Mesh(sphereGeo, orbMat);
+                orbMesh.position.set(x, y, z);
+                orbMesh.userData = { memoryData: data, originalY: y, index: index };
+
+                // Add a glowing ring around orb
+                const ringGeo = new THREE.RingGeometry(1.2, 1.4, 32);
+                const ringMat = new THREE.MeshBasicMaterial({ color: 0xfbcfe8, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.PI / 2;
+                orbMesh.add(ring);
+
+                memoryOrbsGroup.add(orbMesh);
+                memoryMeshObjects.push(orbMesh);
+            });
+
+            scene.add(memoryOrbsGroup);
+        }
+
+        // --- Stardust Explosion Fireworks Particles ---
+        function createExplosionGroup() {
+            explosionParticlesGroup = new THREE.Group();
+            scene.add(explosionParticlesGroup);
+        }
+
+        function triggerLoveExplosion(pos = new THREE.Vector3(0, 0, 0)) {
+            playSparkleSound();
+
+            const count = 250;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const velocities = [];
+
+            for (let i = 0; i < count; i++) {
+                positions[i * 3] = pos.x;
+                positions[i * 3 + 1] = pos.y;
+                positions[i * 3 + 2] = pos.z;
+
+                const vel = new THREE.Vector3(
+                    (Math.random() - 0.5) * 1.5,
+                    (Math.random() - 0.5) * 1.5,
+                    (Math.random() - 0.5) * 1.5
+                );
+                velocities.push(vel);
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.5,
+                color: 0xfcb6e8,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            const explosion = new THREE.Points(geometry, material);
+            explosion.userData = { velocities: velocities, life: 1.0 };
+            explosionParticlesGroup.add(explosion);
+        }
+
+        // --- Raycaster Click Detection on Orbs ---
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2();
+
+        function onPointerDown(event) {
+            // Ignore UI clicks
+            if (event.target.tagName !== 'CANVAS') return;
+
+            pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects(memoryMeshObjects);
+
+            if (intersects.length > 0) {
+                const clickedOrb = intersects[0].object;
+                openMemoryModal(clickedOrb.userData.memoryData);
+                triggerLoveExplosion(clickedOrb.position);
+            }
+        }
+
+        // --- UI Modal Controls ---
+        function openMemoryModal(data) {
+            document.getElementById('modal-tag').innerText = data.tag;
+            document.getElementById('modal-title').innerText = data.title;
+            document.getElementById('modal-body').innerHTML = `<p>${data.text}</p>`;
+            document.getElementById('modal-icon').className = `fas ${data.icon}`;
+
+            const modal = document.getElementById('memory-modal');
+            modal.classList.remove('hidden');
+            
+            // Pause auto rotate while viewing memory
+            controls.autoRotate = false;
+        }
+
+        function closeMemoryModal() {
+            const modal = document.getElementById('memory-modal');
+            modal.classList.add('hidden');
+            controls.autoRotate = true;
+        }
+
+        function resetCameraView() {
+            camera.position.set(0, 25, 45);
+            controls.target.set(0, 0, 0);
+            controls.update();
+        }
+
+        // --- Window Resize Handler ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Animation Loop ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+
+            // Rotate main galaxy smoothly
+            if (galaxyParticles) {
+                galaxyParticles.rotation.y = elapsedTime * 0.03;
+            }
+
+            // Pulse heart constellation
+            if (heartConstellation) {
+                heartConstellation.rotation.y = elapsedTime * -0.05;
+                const scale = 1 + Math.sin(elapsedTime * 2) * 0.08;
+                heartConstellation.scale.set(scale, scale, scale);
+            }
+
+            // Animate floating memory orbs
+            if (memoryOrbsGroup) {
+                memoryOrbsGroup.children.forEach((orb) => {
+                    orb.position.y = orb.userData.originalY + Math.sin(elapsedTime * 2 + orb.userData.index) * 0.5;
+                    orb.rotation.y += 0.02;
+                });
+            }
+
+            // Update explosion particles fading
+            if (explosionParticlesGroup) {
+                explosionParticlesGroup.children.forEach((explosion, index) => {
+                    const positions = explosion.geometry.attributes.position.array;
+                    const vels = explosion.userData.velocities;
+
+                    for (let i = 0; i < vels.length; i++) {
+                        positions[i * 3] += vels[i].x;
+                        positions[i * 3 + 1] += vels[i].y;
+                        positions[i * 3 + 2] += vels[i].z;
+                    }
+
+                    explosion.geometry.attributes.position.needsUpdate = true;
+                    explosion.userData.life -= 0.02;
+                    explosion.material.opacity = explosion.userData.life;
+
+                    if (explosion.userData.life <= 0) {
+                        explosionParticlesGroup.remove(explosion);
+                    }
+                });
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Initialize application on window load
+        window.onload = function() {
+            initThreeJS();
+            animate();
+        };
+    </script>
+</body>
+</html>
