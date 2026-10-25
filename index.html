@@ -8,14 +8,14 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background-color: #03000a; font-family: sans-serif; }
-        canvas { display: block; width: 100vw; height: 100vh; }
-        .glass { background: rgba(10, 10, 25, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); }
+        canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; display: block; }
+        .glass { background: rgba(10, 10, 25, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); }
     </style>
 </head>
 <body class="text-white">
 
     <!-- Encabezado -->
-    <div class="absolute top-4 left-0 right-0 z-10 flex flex-col items-center pointer-events-none px-4">
+    <div class="absolute top-4 left-0 right-0 z-20 flex flex-col items-center pointer-events-none px-4">
         <h1 class="text-2xl sm:text-4xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 text-center drop-shadow-lg">
             3 AÑOS Y 10 MESES
         </h1>
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Botones de Acción -->
-    <div class="absolute bottom-6 left-0 right-0 z-10 flex justify-center items-center gap-4 px-4 pointer-events-auto">
+    <div class="absolute bottom-6 left-0 right-0 z-20 flex justify-center items-center gap-4 px-4 pointer-events-auto">
         <button onclick="toggleAudio()" id="audio-btn" class="glass px-5 py-3 rounded-full font-medium text-sm flex items-center gap-2 hover:bg-white/20 transition shadow-lg text-pink-300">
             <i class="fas fa-music text-lg"></i> <span id="audio-text">Activar Música</span>
         </button>
@@ -32,7 +32,7 @@
         </button>
     </div>
 
-    <!-- Modal de Palabras de Amor (Esferas Amarillas/Rosas de la Órbita) -->
+    <!-- Modal de Palabras de Amor -->
     <div id="memory-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4" onclick="closeModal('memory-modal')">
         <div class="glass max-w-md w-full p-6 rounded-2xl text-center relative shadow-2xl border border-pink-500/40" onclick="event.stopPropagation()">
             <button onclick="closeModal('memory-modal')" class="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
@@ -69,7 +69,7 @@
         scene.fog = new THREE.FogExp2(0x03000a, 0.002);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.body.appendChild(renderer.domElement);
@@ -120,7 +120,7 @@
         resetCamera();
 
         // Galaxia
-        const particleCount = 15000;
+        const particleCount = 12000;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
@@ -146,14 +146,14 @@
         const galaxy = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.12, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.8 }));
         scene.add(galaxy);
 
-        // NÚCLEO CENTRAL (BOLA ROSA GRANDE) - Abre la galería de fotos
+        // Núcleo Rosa Central
         const coreGeo = new THREE.SphereGeometry(3.5, 32, 32);
         const coreMat = new THREE.MeshBasicMaterial({ color: 0xff1493 });
         const coreMesh = new THREE.Mesh(coreGeo, coreMat);
         coreMesh.userData = { isCore: true };
         scene.add(coreMesh);
 
-        // ESFERAS EN ÓRBITA CON PALABRAS DE AMOR
+        // Esferas en órbita
         const interactiveGroup = new THREE.Group();
         scene.add(interactiveGroup);
 
@@ -187,7 +187,6 @@
             clickableObjects.push(orb);
         }
 
-        // Clics e Interacciones
         window.addEventListener('click', (e) => {
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -216,7 +215,6 @@
             document.getElementById(id).classList.remove('flex');
         }
 
-        // Galería de fotos conectada a tus archivos subidos
         const photos = [
             { url: "mibebe1.jpg", caption: "Nuestro primer gran recuerdo juntos ❤️" },
             { url: "mibebe2.jpg", caption: "Momentos mágicos e inolvidables ✨" },
@@ -248,7 +246,6 @@
             updatePhoto();
         }
 
-        // Música Ambiental
         let audioCtx = null, isPlaying = false, oscillators = [];
         function toggleAudio() {
             if (!isPlaying) {
@@ -278,7 +275,8 @@
             requestAnimationFrame(animate);
             galaxy.rotation.y += 0.001;
             interactiveGroup.rotation.y -= 0.0015;
-            coreMesh.scale.setScalar(1 + Math.sin(Date.now() * 0.003) * 0.12);
+            const s = 1 + Math.sin(Date.now() * 0.003) * 0.12;
+            coreMesh.scale.set(s, s, s);
             renderer.render(scene, camera);
         }
         animate();
@@ -287,3 +285,7 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
