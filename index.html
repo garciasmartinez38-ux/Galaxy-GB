@@ -9,12 +9,12 @@
     <style>
         body { margin: 0; overflow: hidden; background-color: #03000a; font-family: sans-serif; }
         canvas { display: block; width: 100vw; height: 100vh; }
-        .glass { background: rgba(10, 10, 25, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glass { background: rgba(10, 10, 25, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); }
     </style>
 </head>
 <body class="text-white">
 
-    <!-- Interfaz Superior -->
+    <!-- Encabezado -->
     <div class="absolute top-4 left-0 right-0 z-10 flex flex-col items-center pointer-events-none px-4">
         <h1 class="text-2xl sm:text-4xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 text-center drop-shadow-lg">
             3 AÑOS Y 10 MESES
@@ -22,7 +22,7 @@
         <p class="text-xs sm:text-sm text-pink-200/80 mt-1 tracking-wider text-center">46 meses creando nuestro propio universo juntos ✨</p>
     </div>
 
-    <!-- Controles Flotantes inferiores -->
+    <!-- Botones de Acción -->
     <div class="absolute bottom-6 left-0 right-0 z-10 flex justify-center items-center gap-4 px-4 pointer-events-auto">
         <button onclick="toggleAudio()" id="audio-btn" class="glass px-5 py-3 rounded-full font-medium text-sm flex items-center gap-2 hover:bg-white/20 transition shadow-lg text-pink-300">
             <i class="fas fa-music text-lg"></i> <span id="audio-text">Activar Música</span>
@@ -32,36 +32,51 @@
         </button>
     </div>
 
-    <!-- Modal de Recuerdos -->
-    <div id="memory-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4" onclick="closeMemory()">
-        <div class="glass max-w-md w-full p-6 rounded-2xl text-center relative shadow-2xl border border-pink-500/30" onclick="event.stopPropagation()">
-            <button onclick="closeMemory()" class="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+    <!-- Modal de Palabras de Amor (Esferas Amarillas/Rosas de la Órbita) -->
+    <div id="memory-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4" onclick="closeModal('memory-modal')">
+        <div class="glass max-w-md w-full p-6 rounded-2xl text-center relative shadow-2xl border border-pink-500/40" onclick="event.stopPropagation()">
+            <button onclick="closeModal('memory-modal')" class="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
             <div id="memory-icon" class="text-4xl text-pink-400 mb-3"><i class="fas fa-heart"></i></div>
             <h3 id="memory-title" class="text-xl font-bold text-pink-200 mb-2"></h3>
-            <p id="memory-desc" class="text-gray-300 text-sm leading-relaxed"></p>
+            <p id="memory-desc" class="text-gray-200 text-sm leading-relaxed whitespace-pre-line"></p>
+        </div>
+    </div>
+
+    <!-- Modal de Galería de Fotos (Núcleo Rosa Central) -->
+    <div id="photo-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 p-4" onclick="closeModal('photo-modal')">
+        <div class="glass max-w-lg w-full p-5 rounded-2xl text-center relative border border-pink-400/40" onclick="event.stopPropagation()">
+            <button onclick="closeModal('photo-modal')" class="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h3 class="text-lg font-bold text-pink-300 mb-3"><i class="fas fa-camera"></i> Nuestros Momentos Especiales</h3>
+            
+            <div class="relative flex items-center justify-center">
+                <img id="gallery-img" src="mibebe1.jpg" class="w-full h-64 object-cover rounded-xl shadow-lg border border-white/10" alt="Foto Juntos">
+            </div>
+            
+            <p id="gallery-caption" class="text-xs text-pink-200 mt-2">Nuestra historia de amor en fotos</p>
+            
+            <div class="flex justify-between items-center mt-4 px-2">
+                <button onclick="prevPhoto()" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-xs text-pink-200"><i class="fas fa-chevron-left"></i> Anterior</button>
+                <span id="photo-counter" class="text-xs text-gray-400">1 de 4</span>
+                <button onclick="nextPhoto()" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-xs text-pink-200">Siguiente <i class="fas fa-chevron-right"></i></button>
+            </div>
         </div>
     </div>
 
     <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Escena, Cámara y Renderizador
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x03000a, 0.002);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 35, 60);
-
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.body.appendChild(renderer.domElement);
 
-        // Controles de Cámara Manuales (Mouse / Touch)
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
-        let cameraAngleX = 0, cameraAngleY = 0.6;
-        let cameraDistance = 70;
+        let cameraAngleX = 0, cameraAngleY = 0.6, cameraDistance = 70;
 
         window.addEventListener('mousedown', (e) => { isDragging = true; previousMousePosition = { x: e.clientX, y: e.clientY }; });
         window.addEventListener('mousemove', (e) => {
@@ -75,7 +90,6 @@
         });
         window.addEventListener('mouseup', () => { isDragging = false; });
 
-        // Touch support
         window.addEventListener('touchstart', (e) => {
             if(e.touches.length === 1) {
                 isDragging = true;
@@ -105,12 +119,11 @@
         }
         resetCamera();
 
-        // Galaxia Espiral de Estrellas
+        // Galaxia
         const particleCount = 15000;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
-
         const colorInside = new THREE.Color('#ff66b2');
         const colorOutside = new THREE.Color('#4169e1');
 
@@ -120,82 +133,74 @@
             const spinAngle = radius * 0.3;
             const branchAngle = ((i % 3) * Math.PI * 2) / 3;
 
-            const randomX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 4;
-            const randomY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 4;
-            const randomZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 4;
+            positions[i3] = Math.cos(branchAngle + spinAngle) * radius + (Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 4);
+            positions[i3 + 1] = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 4;
+            positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + (Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 4);
 
-            positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
-            positions[i3 + 1] = randomY;
-            positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ;
-
-            // Gradiente de color
-            const mixedColor = colorInside.clone();
-            mixedColor.lerp(colorOutside, radius / 45);
-            colors[i3] = mixedColor.r;
-            colors[i3 + 1] = mixedColor.g;
-            colors[i3 + 2] = mixedColor.b;
+            const mixedColor = colorInside.clone().lerp(colorOutside, radius / 45);
+            colors[i3] = mixedColor.r; colors[i3 + 1] = mixedColor.g; colors[i3 + 2] = mixedColor.b;
         }
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-        const material = new THREE.PointsMaterial({
-            size: 0.12,
-            vertexColors: true,
-            blending: THREE.AdditiveBlending,
-            transparent: true,
-            opacity: 0.8
-        });
-
-        const galaxy = new THREE.Points(geometry, material);
+        const galaxy = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.12, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.8 }));
         scene.add(galaxy);
 
-        // Núcleo Central en forma de Corazón 3D / Esfera Brillante
-        const coreGeometry = new THREE.SphereGeometry(2.5, 32, 32);
-        const coreMaterial = new THREE.MeshBasicMaterial({ color: 0xff3399 });
-        const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
+        // NÚCLEO CENTRAL (BOLA ROSA GRANDE) - Abre la galería de fotos
+        const coreGeo = new THREE.SphereGeometry(3.5, 32, 32);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xff1493 });
+        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+        coreMesh.userData = { isCore: true };
         scene.add(coreMesh);
 
-        // Orbes Interactivos (Representando los 46 meses)
+        // ESFERAS EN ÓRBITA CON PALABRAS DE AMOR
         const interactiveGroup = new THREE.Group();
         scene.add(interactiveGroup);
 
-        const memories = [
-            { title: "Mes 1: El Inicio", desc: "El instante mágico en que nuestros caminos se cruzaron y comenzó esta hermosa historia." },
-            { title: "Mes 12: Primer Aniversario", desc: "365 días de risas, complicidad y un amor que no hizo más que fortalecerse." },
-            { title: "Mes 24: Dos Años Juntos", desc: "Consolidando nuestros sueños y construyendo recuerdos inolvidables paso a paso." },
-            { title: "Mes 36: Tres Años de Magia", desc: "Superando cualquier reto con la certeza de que estamos hechos el uno para el otro." },
-            { title: "Mes 46: ¡3 Años y 10 Meses!", desc: "El momento presente. 46 meses de amor sincero, paciencia y felicidad infinita a tu lado." }
+        const loveMessages = [
+            { title: "✨ Tu Sonrisa", desc: "Desde el primer día, tu sonrisa es mi parte favorita de cada mañana. Iluminas todo mi mundo." },
+            { title: "💖 Gracias por Estar", desc: "Gracias por cada abrazo, cada risa y por ser mi apoyo incondicional durante estos 46 meses." },
+            { title: "🌹 Nuestro Amor", desc: "Eres mi persona favorita, mi mejor amiga y el amor de mi vida. Te amo más de lo que las palabras pueden expresar." },
+            { title: "🌌 Nuestro Futuro", desc: "Cada segundo a tu lado me confirma que quiero construir toda mi vida contigo." },
+            { title: "📜 Promesa", desc: "Prometo cuidarte, escucharte y amarte cada día más que el anterior. Feliz 3 Años y 10 Meses, mi vida." },
+            { title: "🥰 Complicidad", desc: "Amo las miradas que solo nosotros entendemos y cada momento especial que compartimos." },
+            { title: "🔮 Destino", desc: "Haberte conocido es lo más lindo que me ha pasado en la vida. Eres mi mayor bendición." },
+            { title: "🌟 Eternidad", desc: "3 años y 10 meses son solo el inicio de una eternidad juntos. ¡Te amo con todo mi corazón!" }
         ];
 
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-        const interactiveOrbs = [];
+        const clickableObjects = [coreMesh];
 
-        for (let i = 0; i < 8; i++) {
-            const angle = (i / 8) * Math.PI * 2;
-            const distance = 12 + (i * 2.5);
-            const orbGeo = new THREE.SphereGeometry(0.8, 16, 16);
-            const orbMat = new THREE.MeshBasicMaterial({ color: 0xffb6c1, wireframe: true });
+        for (let i = 0; i < loveMessages.length; i++) {
+            const angle = (i / loveMessages.length) * Math.PI * 2;
+            const distance = 16 + (i % 2 * 3);
+            const orbGeo = new THREE.SphereGeometry(1.2, 16, 16);
+            const orbMat = new THREE.MeshBasicMaterial({ color: 0xffb6c1, wireframe: false });
             const orb = new THREE.Mesh(orbGeo, orbMat);
 
             orb.position.x = Math.cos(angle) * distance;
             orb.position.z = Math.sin(angle) * distance;
-            orb.userData = memories[i % memories.length];
+            orb.userData = loveMessages[i];
 
             interactiveGroup.add(orb);
-            interactiveOrbs.push(orb);
+            clickableObjects.push(orb);
         }
 
+        // Clics e Interacciones
         window.addEventListener('click', (e) => {
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(interactiveOrbs);
+            const intersects = raycaster.intersectObjects(clickableObjects);
 
             if (intersects.length > 0) {
-                const data = intersects[0].object.userData;
-                showMemory(data.title, data.desc);
+                const clickedObj = intersects[0].object;
+                if (clickedObj.userData.isCore) {
+                    openPhotoGallery();
+                } else {
+                    showMemory(clickedObj.userData.title, clickedObj.userData.desc);
+                }
             }
         });
 
@@ -205,20 +210,50 @@
             document.getElementById('memory-modal').classList.remove('hidden');
             document.getElementById('memory-modal').classList.add('flex');
         }
-        function closeMemory() {
-            document.getElementById('memory-modal').classList.add('hidden');
-            document.getElementById('memory-modal').classList.remove('flex');
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
         }
 
-        // Web Audio API para música ambiental espacial
-        let audioCtx = null;
-        let isPlaying = false;
-        let oscillators = [];
+        // Galería de fotos conectada a tus archivos subidos
+        const photos = [
+            { url: "mibebe1.jpg", caption: "Nuestro primer gran recuerdo juntos ❤️" },
+            { url: "mibebe2.jpg", caption: "Momentos mágicos e inolvidables ✨" },
+            { url: "mibebe3.jpg", caption: "Celebrando nuestro amor cada día 🌹" },
+            { url: "mibebe4.jpg", caption: "¡Te amo con todo mi corazón! 🥰" }
+        ];
+        let currentPhotoIdx = 0;
 
+        function openPhotoGallery() {
+            currentPhotoIdx = 0;
+            updatePhoto();
+            document.getElementById('photo-modal').classList.remove('hidden');
+            document.getElementById('photo-modal').classList.add('flex');
+        }
+
+        function updatePhoto() {
+            document.getElementById('gallery-img').src = photos[currentPhotoIdx].url;
+            document.getElementById('gallery-caption').innerText = photos[currentPhotoIdx].caption;
+            document.getElementById('photo-counter').innerText = `${currentPhotoIdx + 1} de ${photos.length}`;
+        }
+
+        function nextPhoto() {
+            currentPhotoIdx = (currentPhotoIdx + 1) % photos.length;
+            updatePhoto();
+        }
+
+        function prevPhoto() {
+            currentPhotoIdx = (currentPhotoIdx - 1 + photos.length) % photos.length;
+            updatePhoto();
+        }
+
+        // Música Ambiental
+        let audioCtx = null, isPlaying = false, oscillators = [];
         function toggleAudio() {
             if (!isPlaying) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const notes = [220, 277.18, 329.63, 440, 554.37]; // Acorde romántico etéreo
+                const notes = [220, 277.18, 329.63, 440, 554.37];
                 oscillators = notes.map(freq => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
@@ -232,38 +267,23 @@
                 });
                 isPlaying = true;
                 document.getElementById('audio-text').innerText = "Pausar Música";
-                document.getElementById('audio-btn').classList.add('bg-pink-500/30');
             } else {
-                if (audioCtx) {
-                    oscillators.forEach(item => item.osc.stop());
-                    audioCtx.close();
-                }
+                if (audioCtx) { oscillators.forEach(i => i.osc.stop()); audioCtx.close(); }
                 isPlaying = false;
                 document.getElementById('audio-text').innerText = "Activar Música";
-                document.getElementById('audio-btn').classList.remove('bg-pink-500/30');
             }
         }
 
-        // Animación Principal
         function animate() {
             requestAnimationFrame(animate);
             galaxy.rotation.y += 0.001;
             interactiveGroup.rotation.y -= 0.0015;
-
-            // Pulso suave en el núcleo
-            const scale = 1 + Math.sin(Date.now() * 0.003) * 0.15;
-            coreMesh.scale.set(scale, scale, scale);
-
+            coreMesh.scale.setScalar(1 + Math.sin(Date.now() * 0.003) * 0.12);
             renderer.render(scene, camera);
         }
         animate();
 
-        // Responsive Window Resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
-</body>
-</html>
